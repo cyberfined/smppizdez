@@ -12,8 +12,9 @@ Just another fucking SMPP client with following features supported:
 
 # TODO
 
-1) Fix message field indication of incorrectness (for some reason border color is not applied to Gtk.TextView).
-2) Fix account dialog (it must become focused when opened).
-3) Support DATA_SM.
-4) Make more beautiful PDU logs.
-5) Use more convenient path to store json file with accounts, like ~/.config/smppizdez/data.json
+1) Add TLS support.
+2) Fix message field indication of incorrectness (for some reason border color is not applied to Gtk.TextView).
+3) Fix account dialog (it must become focused when opened).
+4) Support DATA_SM.
+5) Make more beautiful PDU logs.
+6) Use more convenient path to store json file with accounts, like ~/.config/smppizdez/data.json
