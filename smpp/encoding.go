@@ -23,9 +23,8 @@ var supportedCodings = map[coding.Coding]encoding{
 var ref uint32
 
 const (
-	udhSize             = 6
-	messagePayloadLimit = uint(64 * 1024)
-	maxSegments         = 255
+	udhSize     = 6
+	maxSegments = 255
 )
 
 const (
@@ -240,10 +239,12 @@ func getSegmentMessages(req *sender.Request) ([][]byte, encoding, error) {
 
 	var messages [][]byte
 	if req.SplitMode == sender.SplitMessagePayload {
-		messages, err = enc.EncodeSplit(req.Message, messagePayloadLimit)
+		msg, err := enc.Encode(req.Message)
 		if err != nil {
 			return nil, nil, err
 		}
+		messages = make([][]byte, 1)
+		messages[0] = msg
 
 		if len(messages) > 1 {
 			return nil, nil, MessageTooLong
