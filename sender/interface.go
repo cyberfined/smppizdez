@@ -15,6 +15,7 @@ type Request struct {
 	DeceptiveCoding    coding.Coding
 	EffectiveCoding    coding.Coding
 	SplitMode          SplitMode
+	Optional           []TLV
 	BytePerSegment     int
 }
 
@@ -160,6 +161,11 @@ func (s SplitMode) String() string {
 	default:
 		return fmt.Sprintf("Unknown SplitMode enum value (%d)", s)
 	}
+}
+
+type TLV struct {
+	Tag   uint16
+	Value []byte
 }
 
 type CommandStatus int

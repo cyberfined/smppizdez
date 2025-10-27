@@ -161,17 +161,19 @@ func getSegmentsSAR(orig *pdu.SubmitSM, messages [][]byte, enc encoding) ([]segm
 		pd := new(pdu.SubmitSM)
 		*pd = *orig
 		pd.AssignSequenceNumber()
+		pd.OptionalParameters = make(map[pdu.Tag]pdu.Field, len(orig.OptionalParameters)+3)
+
+		for _, tlv := range orig.OptionalParameters {
+			pd.RegisterOptionalParam(tlv)
+		}
 
 		seqTLV := pdu.Field{
 			Tag:  pdu.TagSarSegmentSeqnum,
 			Data: []byte{seq},
 		}
-
-		pd.OptionalParameters = map[pdu.Tag]pdu.Field{
-			refTLV.Tag:   refTLV,
-			totalTLV.Tag: totalTLV,
-			seqTLV.Tag:   seqTLV,
-		}
+		pd.RegisterOptionalParam(refTLV)
+		pd.RegisterOptionalParam(totalTLV)
+		pd.RegisterOptionalParam(seqTLV)
 
 		err := pd.Message.SetMessageDataWithEncoding(message, enc)
 		if err != nil {
@@ -219,6 +221,13 @@ func submitSmFromRequest(req *sender.Request) (*pdu.SubmitSM, error) {
 
 	if req.RegisteredDelivery&sender.RdIntermediate != 0 {
 		pd.RegisteredDelivery |= data.SM_NOTIF_REQUESTED
+	}
+
+	for _, tlv := range req.Optional {
+		pd.RegisterOptionalParam(pdu.Field{
+			Tag:  pdu.Tag(tlv.Tag),
+			Data: tlv.Value,
+		})
 	}
 
 	return pd, nil

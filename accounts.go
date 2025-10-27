@@ -172,6 +172,10 @@ func editAccountHandler(ctx *accountsContext) {
 }
 
 func deleteAccountHandler(ctx *accountsContext) {
+	if len(ctx.accounts) == 0 {
+		return
+	}
+
 	idx, path := getSelectedAccountIdx(ctx)
 	if path == nil {
 		return
@@ -332,16 +336,14 @@ func (ctx *accountsContext) selectAccountHandler(tree *gtk.TreeView, path *gtk.T
 }
 
 func initAccountsList(builder *gtk.Builder, repo account.Repository) {
-	accountsListI, _ := builder.GetObject("accounts_list")
-	tree := accountsListI.(*gtk.TreeView)
+	tree := getTreeViewById(builder, "accounts_list")
 	ctx := accountsContext{
 		tree: tree,
 		repo: repo,
 	}
 	initAccountDialog(&ctx.dialog, builder)
 
-	accountsMenuI, _ := builder.GetObject("accounts_menu")
-	menu := accountsMenuI.(*gtk.Menu)
+	menu := getMenuById(builder, "accounts_menu")
 	initAccountsMenu(&ctx, builder)
 
 	tree.Connect("row_activated", ctx.selectAccountHandler)

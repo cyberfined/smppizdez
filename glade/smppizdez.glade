@@ -386,6 +386,26 @@
       </row>
     </data>
   </object>
+  <object class="GtkMenu" id="tlv_menu">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkMenuItem" id="add_tlv_item">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">Add</property>
+        <property name="use-underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="del_tlv_item">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">Delete</property>
+        <property name="use-underline">True</property>
+      </object>
+    </child>
+  </object>
   <object class="GtkListStore" id="ton_store">
     <columns>
       <!-- column-name ton -->
@@ -468,7 +488,7 @@
           </packing>
         </child>
         <child>
-          <!-- n-columns=2 n-rows=14 -->
+          <!-- n-columns=2 n-rows=16 -->
           <object class="GtkGrid" id="submit_sm_grid">
             <property name="visible">True</property>
             <property name="sensitive">False</property>
@@ -938,6 +958,37 @@
               <packing>
                 <property name="left-attach">0</property>
                 <property name="top-attach">13</property>
+                <property name="width">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">TLVs</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">14</property>
+                <property name="width">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkTreeView" id="tlv_form">
+                <property name="height-request">200</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+                <property name="margin-bottom">5</property>
+                <property name="enable-search">False</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">15</property>
                 <property name="width">2</property>
               </packing>
             </child>

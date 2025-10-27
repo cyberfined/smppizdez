@@ -90,16 +90,20 @@ func getTextViewById(b *gtk.Builder, id string) *gtk.TextView {
 	return v.(*gtk.TextView)
 }
 
+func getTreeViewById(b *gtk.Builder, id string) *gtk.TreeView {
+	v, _ := b.GetObject(id)
+	return v.(*gtk.TreeView)
+}
+
+func getMenuById(b *gtk.Builder, id string) *gtk.Menu {
+	v, _ := b.GetObject(id)
+	return v.(*gtk.Menu)
+}
+
 func markInvalidEntry(e *gtk.Widget, tip string) {
 	e.SetTooltipText(tip)
 	ctx, _ := e.GetStyleContext()
 	ctx.AddClass("invalid-entry")
-}
-
-func markValidEntry(e *gtk.Entry) {
-	e.SetTooltipText("")
-	ctx, _ := e.GetStyleContext()
-	ctx.RemoveClass("invalid-entry")
 }
 
 func getComboIndex(c *gtk.ComboBox) int {

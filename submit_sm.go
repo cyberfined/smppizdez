@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"slices"
 	"smppizdez/account"
 	"smppizdez/coding"
 	"smppizdez/sender"
+	"strconv"
 
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -64,7 +67,13 @@ type submitSmContext struct {
 	logsArea          *gtk.TextView
 	logsScroller      *gtk.ScrolledWindow
 	unbindBtn         *gtk.Button
+	tlvs              []tlvData
 	effectiveCoding   coding.Coding
+}
+
+type tlvData struct {
+	tag   string
+	value string
 }
 
 func codingToString(cod coding.Coding) string {
@@ -147,6 +156,75 @@ func (ctx *submitSmContext) initCodingSelectors() {
 	ctx.decCodingSelector.SetActive(decActiveIdx)
 }
 
+func (ctx *submitSmContext) initTLVForm(builder *gtk.Builder) {
+	store, _ := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+	tree := getTreeViewById(builder, "tlv_form")
+	tree.SetModel(store)
+
+	addItem := getMenuItemById(builder, "add_tlv_item")
+	addItem.Connect("button_release_event", func() {
+		iter := store.Append()
+		store.Set(iter, []int{0, 1}, []any{"0000", ""})
+		ctx.tlvs = append(ctx.tlvs, tlvData{tag: "0000", value: ""})
+	})
+
+	delItem := getMenuItemById(builder, "del_tlv_item")
+	delItem.Connect("button_release_event", func() {
+		if len(ctx.tlvs) == 0 {
+			return
+		}
+
+		path, _ := tree.GetCursor()
+		idx := path.GetIndices()[0]
+		iter, _ := store.GetIter(path)
+		store.Remove(iter)
+		ctx.tlvs = append(ctx.tlvs[:idx], ctx.tlvs[idx+1:]...)
+	})
+
+	for i, name := range []string{"Tag", "Value"} {
+		rend, _ := gtk.CellRendererTextNew()
+		rend.SetProperty("editable", true)
+		col, _ := gtk.TreeViewColumnNewWithAttribute(name, rend, "text", i)
+		tree.AppendColumn(col)
+
+		var handler func(string, string, *gtk.ListStore)
+		if i == 0 {
+			handler = ctx.tagEditedHandler
+		} else {
+			handler = ctx.valueEditedHandler
+		}
+		rend.Connect("edited", func(_ *gtk.CellRendererText, path, newText string) {
+			handler(path, newText, store)
+		})
+	}
+
+	menu := getMenuById(builder, "tlv_menu")
+	tree.Connect("button_press_event", func(_ *gtk.TreeView, event *gdk.Event) bool {
+		btnEvent := gdk.EventButtonNewFromEvent(event)
+		if btnEvent.Button() == gdk.BUTTON_SECONDARY {
+			menu.PopupAtPointer(event)
+			return true
+		}
+		return false
+	})
+}
+
+func (ctx *submitSmContext) tagEditedHandler(path, newText string, store *gtk.ListStore) {
+	iter, _ := store.GetIterFromString(path)
+	store.Set(iter, []int{0}, []any{newText})
+	treePath, _ := store.GetPath(iter)
+	idx := treePath.GetIndices()[0]
+	ctx.tlvs[idx].tag = newText
+}
+
+func (ctx *submitSmContext) valueEditedHandler(path, newText string, store *gtk.ListStore) {
+	iter, _ := store.GetIterFromString(path)
+	store.Set(iter, []int{1}, []any{newText})
+	treePath, _ := store.GetPath(iter)
+	idx := treePath.GetIndices()[0]
+	ctx.tlvs[idx].value = newText
+}
+
 func initSubmitSmForm(builder *gtk.Builder, s sender.Sender) {
 	ctx := submitSmContext{
 		sender:            s,
@@ -197,6 +275,7 @@ func initSubmitSmForm(builder *gtk.Builder, s sender.Sender) {
 	ctx.logsScroller = scrollerI.(*gtk.ScrolledWindow)
 
 	ctx.initCodingSelectors()
+	ctx.initTLVForm(builder)
 
 	submitSmStartSessionCallback = ctx.startSession
 
@@ -327,13 +406,15 @@ func (ctx *submitSmContext) pduHandler(dir sender.Direction, pdu sender.PDU) {
 		)
 	}
 
-	buf, err := ctx.logsArea.GetBuffer()
-	if err != nil {
-		return
-	}
-	buf.Insert(buf.GetEndIter(), log)
-	vadg := ctx.logsScroller.GetVAdjustment()
-	vadg.SetValue(vadg.GetUpper())
+	glib.IdleAdd(func() {
+		buf, err := ctx.logsArea.GetBuffer()
+		if err != nil {
+			return
+		}
+		buf.Insert(buf.GetEndIter(), log)
+		vadg := ctx.logsScroller.GetVAdjustment()
+		vadg.SetValue(vadg.GetUpper())
+	})
 }
 
 func (ctx *submitSmContext) sessionCloseHandler(err error) {
@@ -376,6 +457,24 @@ func (ctx *submitSmContext) getRequest() *sender.Request {
 	segmentBytesU64, ok := checkEntryNumerical(ctx.segmentBytesEntry, 8, "Bytes per segment")
 	isValid = isValid && ok
 	req.BytePerSegment = int(segmentBytesU64)
+
+	for _, tlv := range ctx.tlvs {
+		tag, err := strconv.ParseUint(tlv.tag, 16, 16)
+		if err != nil {
+			errorDialog("Invalid TLV tag: %v", err)
+			isValid = false
+			break
+		}
+
+		value, err := hex.DecodeString(tlv.value)
+		if err != nil {
+			errorDialog("Invalid TLV value: %v", err)
+			isValid = false
+			break
+		}
+
+		req.Optional = append(req.Optional, sender.TLV{Tag: uint16(tag), Value: value})
+	}
 
 	if isValid {
 		return req
