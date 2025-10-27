@@ -1,4 +1,5 @@
 smppizdez
 *.glade~
+*.glade#
 *.pcap
 *.json

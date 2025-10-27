@@ -63,6 +63,7 @@ type submitSmContext struct {
 	messageLabel      *gtk.Label
 	logsArea          *gtk.TextView
 	logsScroller      *gtk.ScrolledWindow
+	unbindBtn         *gtk.Button
 	effectiveCoding   coding.Coding
 }
 
@@ -210,9 +211,10 @@ func initSubmitSmForm(builder *gtk.Builder, s sender.Sender) {
 		}
 	})
 
-	unbindBtn := getButtonById(builder, "unbind_button")
-	unbindBtn.Connect("pressed", func() {
+	ctx.unbindBtn = getButtonById(builder, "unbind_button")
+	ctx.unbindBtn.Connect("pressed", func() {
 		ctx.submitSmForm.SetSensitive(false)
+		ctx.unbindBtn.SetSensitive(false)
 		if ctx.session == nil {
 			return
 		}
@@ -224,16 +226,13 @@ func initSubmitSmForm(builder *gtk.Builder, s sender.Sender) {
 }
 
 func (ctx *submitSmContext) startSession(acc *account.Account) {
-	glib.IdleAdd(func() {
-		buf, err := ctx.logsArea.GetBuffer()
-		if err != nil {
-			return
-		}
-		logsStart, logsEnd := buf.GetBounds()
-		buf.Delete(logsStart, logsEnd)
-	})
+	buf, err := ctx.logsArea.GetBuffer()
+	if err != nil {
+		return
+	}
+	logsStart, logsEnd := buf.GetBounds()
+	buf.Delete(logsStart, logsEnd)
 
-	var err error
 	if ctx.session != nil {
 		err = ctx.session.Close()
 		if err != nil {
@@ -247,6 +246,7 @@ func (ctx *submitSmContext) startSession(acc *account.Account) {
 		return
 	}
 	ctx.submitSmForm.SetSensitive(true)
+	ctx.unbindBtn.SetSensitive(true)
 }
 
 func (ctx *submitSmContext) pduHandler(dir sender.Direction, pdu sender.PDU) {
@@ -314,6 +314,10 @@ func (ctx *submitSmContext) pduHandler(dir sender.Direction, pdu sender.PDU) {
 			req.MessageID,
 		)
 	case *sender.GenericPDU:
+		if req.Command == sender.EnquireLink || req.Command == sender.EnquireLinkResp {
+			return
+		}
+
 		log = fmt.Sprintf(
 			"%s\n    Command: %v\n    Status: %v\n   Sequence: %d\n",
 			dirStr,
@@ -323,20 +327,19 @@ func (ctx *submitSmContext) pduHandler(dir sender.Direction, pdu sender.PDU) {
 		)
 	}
 
-	glib.IdleAdd(func() {
-		buf, err := ctx.logsArea.GetBuffer()
-		if err != nil {
-			return
-		}
-		buf.InsertAtCursor(log)
-		vadg := ctx.logsScroller.GetVAdjustment()
-		vadg.SetValue(vadg.GetUpper())
-	})
+	buf, err := ctx.logsArea.GetBuffer()
+	if err != nil {
+		return
+	}
+	buf.Insert(buf.GetEndIter(), log)
+	vadg := ctx.logsScroller.GetVAdjustment()
+	vadg.SetValue(vadg.GetUpper())
 }
 
 func (ctx *submitSmContext) sessionCloseHandler(err error) {
 	ctx.session = nil
 	ctx.submitSmForm.SetSensitive(false)
+	ctx.unbindBtn.SetSensitive(false)
 	if err != nil {
 		errorDialog("SMPP session error: %v", err)
 	}
