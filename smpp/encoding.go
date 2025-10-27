@@ -267,7 +267,11 @@ func getSegmentMessages(req *sender.Request) ([][]byte, encoding, error) {
 
 		messages, err = enc.EncodeSplit(req.Message, bytesPerMultiSegment)
 	} else {
-		messages, err = enc.EncodeSplit(req.Message, uint(req.BytePerSegment))
+		msg, err := enc.Encode(req.Message)
+		if err == nil {
+			messages = make([][]byte, 1)
+			messages[0] = msg
+		}
 	}
 
 	if err != nil {
