@@ -1,8 +1,10 @@
 package smpp
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"smppizdez/account"
 	"smppizdez/coding"
 	"smppizdez/sender"
@@ -144,14 +146,21 @@ func (s Sender) StartSession(
 		SystemType: acc.SystemType,
 	}
 
+	var dialer gosmpp.Dialer
+	if acc.TLS {
+		dialer = tlsDialer
+	} else {
+		dialer = gosmpp.NonTLSDialer
+	}
+
 	var connector gosmpp.Connector
 	switch acc.BindType {
 	case account.Transceiver:
-		connector = gosmpp.TRXConnector(gosmpp.NonTLSDialer, auth)
+		connector = gosmpp.TRXConnector(dialer, auth)
 	case account.Transmitter:
-		connector = gosmpp.TXConnector(gosmpp.NonTLSDialer, auth)
+		connector = gosmpp.TXConnector(dialer, auth)
 	default:
-		connector = gosmpp.RXConnector(gosmpp.NonTLSDialer, auth)
+		connector = gosmpp.RXConnector(dialer, auth)
 	}
 
 	session := &Session{
@@ -184,6 +193,11 @@ func (s Sender) StartSession(
 
 	session.tr = session.conn.Transmitter()
 	return session, nil
+}
+
+func tlsDialer(addr string) (net.Conn, error) {
+	cfg := tls.Config{MinVersion: tls.VersionTLS12}
+	return tls.Dial("tcp", addr, &cfg)
 }
 
 func (s Sender) SupportedCodings() []coding.Coding {

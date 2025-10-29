@@ -9,10 +9,10 @@ Just another fucking SMPP client with following features supported:
 5) Non-standard segment sizes (any between 1 and 255).
 6) Deceptive encoding (you encode message with for example GSM7 but send UCS2 in data_coding field instead).
 7) TLV.
+8) TLS support.
 
 # TODO
 
-1) Add TLS support.
 2) Fix message field indication of incorrectness (for some reason border color is not applied to Gtk.TextView).
 3) Fix account dialog (it must become focused when opened).
 4) Support DATA_SM.
