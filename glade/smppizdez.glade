@@ -891,17 +891,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkTextView" id="message_input">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="wrap-mode">char</property>
-              </object>
-              <packing>
-                <property name="left-attach">1</property>
-                <property name="top-attach">10</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -975,7 +964,7 @@
             </child>
             <child>
               <object class="GtkTreeView" id="tlv_form">
-                <property name="height-request">200</property>
+                <property name="height-request">100</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="margin-start">5</property>
@@ -990,6 +979,25 @@
                 <property name="left-attach">0</property>
                 <property name="top-attach">15</property>
                 <property name="width">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="height-request">70</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <object class="GtkTextView" id="message_input">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="wrap-mode">char</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="left-attach">1</property>
+                <property name="top-attach">10</property>
               </packing>
             </child>
           </object>
