@@ -418,12 +418,14 @@ func (ctx *submitSmContext) pduHandler(dir sender.Direction, pdu sender.PDU) {
 }
 
 func (ctx *submitSmContext) sessionCloseHandler(err error) {
-	ctx.session = nil
-	ctx.submitSmForm.SetSensitive(false)
-	ctx.unbindBtn.SetSensitive(false)
-	if err != nil {
-		errorDialog("SMPP session error: %v", err)
-	}
+	glib.IdleAdd(func() {
+		ctx.session = nil
+		ctx.submitSmForm.SetSensitive(false)
+		ctx.unbindBtn.SetSensitive(false)
+		if err != nil {
+			errorDialog("SMPP session error: %v", err)
+		}
+	})
 }
 
 func (ctx *submitSmContext) getRequest() *sender.Request {
