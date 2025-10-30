@@ -451,10 +451,6 @@ func (ctx *submitSmContext) getRequest() *sender.Request {
 	msgBuf, _ := ctx.messageEntry.GetBuffer()
 	msgStart, msgEnd := msgBuf.GetBounds()
 	req.Message, _ = msgBuf.GetText(msgStart, msgEnd, true)
-	if len(req.Message) == 0 {
-		markInvalidEntry(&ctx.messageEntry.Widget, "Message must be set")
-		isValid = false
-	}
 
 	segmentBytesU64, ok := checkEntryNumerical(ctx.segmentBytesEntry, 8, "Bytes per segment")
 	isValid = isValid && ok

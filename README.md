@@ -1,6 +1,6 @@
 # smppizdez
 
-Just another fucking SMPP client with following features supported:
+Yet another fucking SMPP client with following features supported:
 
 1) GSM7 (packed/unpacked) and UCS2 encodings.
 2) Message Payload TLV.
@@ -13,8 +13,7 @@ Just another fucking SMPP client with following features supported:
 
 # TODO
 
-2) Fix message field indication of incorrectness (for some reason border color is not applied to Gtk.TextView).
-3) Fix account dialog (it must become focused when opened).
-4) Support DATA_SM.
-5) Make more beautiful PDU logs.
-6) Use more convenient path to store json file with accounts, like ~/.config/smppizdez/data.json
+1) Fix account dialog (it must become focused when opened).
+2) Support DATA_SM.
+3) Make more beautiful PDU logs.
+4) Use more convenient path to store json file with accounts, like ~/.config/smppizdez/data.json
